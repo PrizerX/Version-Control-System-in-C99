@@ -137,7 +137,7 @@ int repo_add_file(const char *filename) {
     int rc = -1;
 
     if (!repo_exists()) {
-        fprintf(stderr, "Not a mygit repository. Run 'mygit init' first.\n");
+        fprintf(stderr, "Not a mygit repository. Run 'prk init' first.\n");
         return -1;
     }
 

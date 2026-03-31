@@ -1,8 +1,8 @@
-# mygit (Mini Version Control System in C99)
+# prk (Mini Version Control System in C99)
 
 ## 1) Project Overview
 
-`mygit` is a terminal-based, Git-like mini version control system written strictly in C (C99).
+`prk` is a terminal-based, Git-like mini version control system written strictly in C (C99).
 It demonstrates the core VCS ideas using only files and folders:
 
 - repository initialization
@@ -53,7 +53,7 @@ No external libraries are used.
 `-- README.md
 ```
 
-Runtime repository layout after `mygit init`:
+Runtime repository layout after `prk init`:
 
 ```
 .mygit/
@@ -66,20 +66,20 @@ Runtime repository layout after `mygit init`:
 
 ## 4) How Each Command Works
 
-### `mygit init`
+### `prk init`
 
 1. Ensures `.mygit` and required subfolders exist.
 2. Creates `HEAD` with value `none` if missing.
 3. Creates empty `index.txt` if missing.
 
-### `mygit add <filename>`
+### `prk add <filename>`
 
 1. Reads file content from working directory.
 2. Hashes content using a built-in hash function.
 3. Writes content to `.mygit/objects/<hash>.txt`.
 4. Adds or updates `filename|hash` in `.mygit/index.txt`.
 
-### `mygit commit "<message>"`
+### `prk commit "<message>"`
 
 1. Reads all currently tracked entries from index.
 2. Reads parent from `HEAD`.
@@ -92,21 +92,21 @@ Runtime repository layout after `mygit init`:
    - `files:` then `filename|hash` lines
 5. Updates `HEAD` with new commit id.
 
-### `mygit log`
+### `prk log`
 
 1. Reads `HEAD`.
 2. Loads that commit file.
 3. Prints details.
 4. Moves to `parent` and repeats until `none`.
 
-### `mygit checkout <commit_id>`
+### `prk checkout <commit_id>`
 
 1. Loads commit file by id.
 2. For each tracked file entry, finds object file by hash.
 3. Copies object content into working directory file path.
 4. Updates `HEAD` to checked-out commit id.
 
-### `mygit diff <commit1> <commit2>`
+### `prk diff <commit1> <commit2>`
 
 1. Loads both commits.
 2. Builds union of filenames tracked by either commit.
@@ -118,24 +118,24 @@ Runtime repository layout after `mygit init`:
 Compile:
 
 ```bash
-gcc *.c -o mygit
+gcc *.c -o prk
 ```
 
 Example usage:
 
 ```bash
-./mygit init
-./mygit add notes.txt
-./mygit commit "first commit"
-./mygit log
-./mygit checkout <commit_id>
-./mygit diff <commit1> <commit2>
+./prk init
+./prk add notes.txt
+./prk commit "first commit"
+./prk log
+./prk checkout <commit_id>
+./prk diff <commit1> <commit2>
 ```
 
 On Windows (PowerShell), run:
 
 ```powershell
-./mygit.exe init
+./prk.exe init
 ```
 
 ## 6) Line-by-Line Explanation (Beginner-Friendly)

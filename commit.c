@@ -46,7 +46,7 @@ int create_commit(const char *message, char *out_commit_id, size_t out_size) {
     Commit commit;
 
     if (!repo_exists()) {
-        fprintf(stderr, "Not a mygit repository. Run 'mygit init' first.\n");
+        fprintf(stderr, "Not a mygit repository. Run 'prk init' first.\n");
         return -1;
     }
 
@@ -56,7 +56,7 @@ int create_commit(const char *message, char *out_commit_id, size_t out_size) {
     }
 
     if (repo_read_index(&index_head) != 0 || index_head == NULL) {
-        fprintf(stderr, "Nothing to commit. Use 'mygit add <file>' first.\n");
+        fprintf(stderr, "Nothing to commit. Use 'prk add <file>' first.\n");
         return -1;
     }
 
@@ -153,7 +153,7 @@ int print_commit_log(void) {
     char current[32];
 
     if (!repo_exists()) {
-        fprintf(stderr, "Not a mygit repository. Run 'mygit init' first.\n");
+        fprintf(stderr, "Not a mygit repository. Run 'prk init' first.\n");
         return -1;
     }
 
@@ -186,7 +186,7 @@ int checkout_commit(const char *commit_id) {
     FileEntry *entry;
 
     if (!repo_exists()) {
-        fprintf(stderr, "Not a mygit repository. Run 'mygit init' first.\n");
+        fprintf(stderr, "Not a mygit repository. Run 'prk init' first.\n");
         return -1;
     }
 

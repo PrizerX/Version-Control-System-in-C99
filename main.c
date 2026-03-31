@@ -7,14 +7,14 @@
 
 /* Prints CLI usage help text. */
 static void print_usage(void) {
-    printf("mygit - mini version control system (C99)\n\n");
+    printf("prk - mini version control system (C99)\n\n");
     printf("Usage:\n");
-    printf("  mygit init\n");
-    printf("  mygit add <filename>\n");
-    printf("  mygit commit \"<message>\"\n");
-    printf("  mygit log\n");
-    printf("  mygit checkout <commit_id>\n");
-    printf("  mygit diff <commit1> <commit2>\n");
+    printf("  prk init\n");
+    printf("  prk add <filename>\n");
+    printf("  prk commit \"<message>\"\n");
+    printf("  prk log\n");
+    printf("  prk checkout <commit_id>\n");
+    printf("  prk diff <commit1> <commit2>\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "add") == 0) {
         if (argc != 3) {
-            fprintf(stderr, "Usage: mygit add <filename>\n");
+            fprintf(stderr, "Usage: prk add <filename>\n");
             return 1;
         }
         return repo_add_file(argv[2]) == 0 ? 0 : 1;
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "commit") == 0) {
         char commit_id[32];
         if (argc != 3) {
-            fprintf(stderr, "Usage: mygit commit \"<message>\"\n");
+            fprintf(stderr, "Usage: prk commit \"<message>\"\n");
             return 1;
         }
         return create_commit(argv[2], commit_id, sizeof(commit_id)) == 0 ? 0 : 1;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "checkout") == 0) {
         if (argc != 3) {
-            fprintf(stderr, "Usage: mygit checkout <commit_id>\n");
+            fprintf(stderr, "Usage: prk checkout <commit_id>\n");
             return 1;
         }
         return checkout_commit(argv[2]) == 0 ? 0 : 1;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "diff") == 0) {
         if (argc != 4) {
-            fprintf(stderr, "Usage: mygit diff <commit1> <commit2>\n");
+            fprintf(stderr, "Usage: prk diff <commit1> <commit2>\n");
             return 1;
         }
         return diff_commits(argv[2], argv[3]) == 0 ? 0 : 1;
