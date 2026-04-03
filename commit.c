@@ -11,6 +11,10 @@
 #define COMMITS_DIR ".mygit/commits"
 #define OBJECTS_DIR ".mygit/objects"
 
+static int write_head_none(void) {
+    return repo_write_head("none");
+}
+
 static int write_commit_file(const Commit *commit) {
     char path[512];
     FILE *fp;
@@ -38,7 +42,7 @@ static int write_commit_file(const Commit *commit) {
     return 0;
 }
 
-int create_commit(const char *message, char *out_commit_id, size_t out_size) {
+int create_commit(const char *message, Stack *stack, char *out_commit_id, size_t out_size) {
     FileEntry *index_head = NULL;
     FileEntry *entry;
     char parent[32];
@@ -94,6 +98,12 @@ int create_commit(const char *message, char *out_commit_id, size_t out_size) {
 
     if (out_commit_id != NULL && out_size > 0) {
         (void)snprintf(out_commit_id, out_size, "%s", commit.id);
+    }
+
+    if (stack != NULL) {
+        if (push(stack, commit.id) != 0) {
+            fprintf(stderr, "Warning: commit created but failed to push hash to stack\n");
+        }
     }
 
     printf("Committed as %s\n", commit.id);
@@ -214,4 +224,77 @@ int checkout_commit(const char *commit_id) {
     printf("Checked out commit %s\n", commit.id);
     free_commit(&commit);
     return 0;
+}
+
+int build_commit_stack(Stack *stack) {
+    char current[32];
+    char commit_ids[STACK_MAX_SIZE][STACK_HASH_SIZE];
+    int count = 0;
+
+    if (stack == NULL) {
+        return -1;
+    }
+
+    init_stack(stack);
+
+    if (!repo_exists()) {
+        return -1;
+    }
+
+    if (repo_read_head(current, sizeof(current)) != 0 || strcmp(current, "none") == 0) {
+        return 0;
+    }
+
+    while (strcmp(current, "none") != 0) {
+        Commit commit;
+
+        if (count >= STACK_MAX_SIZE) {
+            fprintf(stderr, "Stack overflow: commit history exceeds %d entries\n", STACK_MAX_SIZE);
+            return -1;
+        }
+
+        if (load_commit(current, &commit) != 0) {
+            return -1;
+        }
+
+        (void)snprintf(commit_ids[count], STACK_HASH_SIZE, "%s", commit.id);
+        count++;
+
+        (void)snprintf(current, sizeof(current), "%s", strlen(commit.parent) > 0 ? commit.parent : "none");
+        free_commit(&commit);
+    }
+
+    while (count > 0) {
+        count--;
+        if (push(stack, commit_ids[count]) != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int undo_last_commit(Stack *stack) {
+    char removed[STACK_HASH_SIZE];
+    char previous[STACK_HASH_SIZE];
+
+    if (stack == NULL) {
+        return -1;
+    }
+
+    if (pop(stack, removed, sizeof(removed)) != 0) {
+        return -1;
+    }
+
+    if (peek(stack, previous, sizeof(previous)) != 0) {
+        if (write_head_none() != 0) {
+            fprintf(stderr, "Failed to update HEAD during undo\n");
+            return -1;
+        }
+        printf("Undid commit %s. No previous commit to checkout.\n", removed);
+        return 0;
+    }
+
+    printf("Undid commit %s\n", removed);
+    return checkout_commit(previous);
 }

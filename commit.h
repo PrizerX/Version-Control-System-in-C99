@@ -1,6 +1,7 @@
 #ifndef COMMIT_H
 #define COMMIT_H
 
+#include "stack.h"
 #include "utils.h"
 
 typedef struct Commit {
@@ -12,7 +13,7 @@ typedef struct Commit {
 } Commit;
 
 /* Creates a commit from current index with message. */
-int create_commit(const char *message, char *out_commit_id, size_t out_size);
+int create_commit(const char *message, Stack *stack, char *out_commit_id, size_t out_size);
 
 /* Prints commit history from HEAD to root. */
 int print_commit_log(void);
@@ -25,5 +26,11 @@ void free_commit(Commit *commit);
 
 /* Restores working files from a specific commit id. */
 int checkout_commit(const char *commit_id);
+
+/* Builds stack state from current HEAD commit chain. */
+int build_commit_stack(Stack *stack);
+
+/* Undoes latest commit and restores previous commit state. */
+int undo_last_commit(Stack *stack);
 
 #endif
