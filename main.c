@@ -21,6 +21,7 @@ static void print_usage(void) {
 }
 
 int main(int argc, char *argv[]) {
+    Stack commit_stack;
     if (argc < 2) {
         print_usage();
         return 1;
