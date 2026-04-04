@@ -21,14 +21,6 @@ static void print_usage(void) {
 }
 
 int main(int argc, char *argv[]) {
-    Stack commit_stack;
-    Queue demo_queue;
-
-    init_queue(&demo_queue);
-    if (isEmptyQueue(&demo_queue)) {
-        /* Queue demonstration in main: initialized and checked empty state. */
-    }
-
     if (argc < 2) {
         print_usage();
         return 1;
