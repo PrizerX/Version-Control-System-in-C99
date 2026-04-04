@@ -22,14 +22,19 @@ No external libraries are used.
   - creates `.mygit/HEAD`
   - creates `.mygit/index.txt`
 - `add <filename>`
-  - reads the file
-  - computes a deterministic hash
-  - stores object in `.mygit/objects/<hash>.txt`
-  - updates index entry `filename|hash`
+  - validates file exists
+  - enqueues filename into staging queue
+  - persists queue in `.mygit/queue.txt`
 - `commit "<message>"`
+  - dequeues staged filenames one by one
+  - processes each file into objects + index
   - creates commit file `.mygit/commits/<commit_id>.txt`
   - stores commit id, message, parent, timestamp, tracked file list
   - updates `HEAD`
+- `undo`
+  - pops latest commit from commit stack
+  - checks out to previous commit
+  - if no previous commit exists, sets `HEAD` to `none`
 - `log`
   - walks parents from `HEAD` to `none`
   - prints newest to oldest
@@ -59,6 +64,7 @@ Runtime repository layout after `prk init`:
 .mygit/
 |-- HEAD
 |-- index.txt
+|-- queue.txt
 |-- objects/
 |-- commits/
 `-- refs/
@@ -74,23 +80,31 @@ Runtime repository layout after `prk init`:
 
 ### `prk add <filename>`
 
-1. Reads file content from working directory.
-2. Hashes content using a built-in hash function.
-3. Writes content to `.mygit/objects/<hash>.txt`.
-4. Adds or updates `filename|hash` in `.mygit/index.txt`.
+1. Validates file content can be read from working directory.
+2. Enqueues filename in staging queue.
+3. Saves queue state to `.mygit/queue.txt`.
 
 ### `prk commit "<message>"`
 
-1. Reads all currently tracked entries from index.
-2. Reads parent from `HEAD`.
-3. Generates commit id from message + parent + timestamp + tracked entries.
-4. Writes commit file:
+1. Loads queue from `.mygit/queue.txt`.
+2. Dequeues and processes each queued file (object storage + index update).
+3. Reads all currently tracked entries from index.
+4. Reads parent from `HEAD`.
+5. Generates commit id from message + parent + timestamp + tracked entries.
+6. Writes commit file:
    - `commit_id:<id>`
    - `parent:<parent or none>`
    - `timestamp:<epoch>`
    - `message:<text>`
    - `files:` then `filename|hash` lines
-5. Updates `HEAD` with new commit id.
+7. Updates `HEAD` with new commit id.
+
+### `prk undo`
+
+1. Builds commit stack from current `HEAD` chain.
+2. Pops latest commit hash.
+3. Checks out previous commit hash.
+4. If no previous commit remains, updates `HEAD` to `none`.
 
 ### `prk log`
 
@@ -127,6 +141,7 @@ Example usage:
 ./prk init
 ./prk add notes.txt
 ./prk commit "first commit"
+./prk undo
 ./prk log
 ./prk checkout <commit_id>
 ./prk diff <commit1> <commit2>

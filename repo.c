@@ -1,6 +1,7 @@
 #include "repo.h"
 
 #include "hash.h"
+#include "queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #define REFS_DIR ".mygit/refs"
 #define HEAD_FILE ".mygit/HEAD"
 #define INDEX_FILE ".mygit/index.txt"
+#define QUEUE_FILE ".mygit/queue.txt"
 
 static int read_index_internal(FileEntry **out_head) {
     char *content;
@@ -73,6 +75,10 @@ int repo_init(void) {
         fprintf(stderr, "Failed to create index file\n");
         return -1;
     }
+    if (!path_exists(QUEUE_FILE) && write_text_file(QUEUE_FILE, "") != 0) {
+        fprintf(stderr, "Failed to create queue file\n");
+        return -1;
+    }
 
     printf("Initialized empty mygit repository in .mygit/\n");
     return 0;
@@ -128,7 +134,101 @@ int repo_write_head(const char *commit_id) {
     return write_text_file(HEAD_FILE, buffer);
 }
 
-int repo_add_file(const char *filename) {
+int repo_load_queue(Queue *queue) {
+    char *content;
+    char *line;
+
+    if (queue == NULL) {
+        return -1;
+    }
+
+    init_queue(queue);
+    if (!path_exists(QUEUE_FILE)) {
+        return 0;
+    }
+
+    content = read_text_file(QUEUE_FILE);
+    if (content == NULL) {
+        return -1;
+    }
+
+    line = strtok(content, "\n");
+    while (line != NULL) {
+        if (strlen(line) > 0 && enqueue(queue, line) != 0) {
+            free(content);
+            return -1;
+        }
+        line = strtok(NULL, "\n");
+    }
+
+    free(content);
+    return 0;
+}
+
+int repo_save_queue(const Queue *queue) {
+    FILE *fp;
+    int i;
+
+    if (queue == NULL) {
+        return -1;
+    }
+
+    fp = fopen(QUEUE_FILE, "wb");
+    if (fp == NULL) {
+        return -1;
+    }
+
+    i = queue->front;
+    while (i != -1) {
+        if (fprintf(fp, "%s\n", queue->items[i]) < 0) {
+            fclose(fp);
+            return -1;
+        }
+        if (i == queue->rear) {
+            break;
+        }
+        i = (i + 1) % QUEUE_MAX_SIZE;
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+int repo_enqueue_file(const char *filename) {
+    Queue queue;
+    char *validation_content;
+
+    if (!repo_exists()) {
+        fprintf(stderr, "Not a mygit repository. Run 'prk init' first.\n");
+        return -1;
+    }
+
+    validation_content = read_text_file(filename);
+    if (validation_content == NULL) {
+        fprintf(stderr, "Unable to read file: %s\n", filename);
+        return -1;
+    }
+    free(validation_content);
+
+    if (repo_load_queue(&queue) != 0) {
+        fprintf(stderr, "Unable to load staging queue\n");
+        return -1;
+    }
+
+    if (enqueue(&queue, filename) != 0) {
+        return -1;
+    }
+
+    if (repo_save_queue(&queue) != 0) {
+        fprintf(stderr, "Unable to save staging queue\n");
+        return -1;
+    }
+
+    printf("Queued %s for commit\n", filename);
+    return 0;
+}
+
+int repo_process_file(const char *filename) {
     char *content;
     char hash[32];
     char object_path[512];
@@ -174,7 +274,7 @@ int repo_add_file(const char *filename) {
     if (repo_write_index(index_head) != 0) {
         fprintf(stderr, "Unable to write index\n");
     } else {
-        printf("Added %s as object %s\n", filename, hash);
+        printf("Processed %s as object %s\n", filename, hash);
         rc = 0;
     }
 
