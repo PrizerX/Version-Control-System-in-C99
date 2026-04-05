@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define OBJECTS_DIR ".mygit/objects"
+#define OBJECTS_DIR ".prk/objects"
 #define MAX_DIFF_LINES 1000
 
 typedef struct LineArray {

@@ -8,8 +8,8 @@
 #include <string.h>
 #include <time.h>
 
-#define COMMITS_DIR ".mygit/commits"
-#define OBJECTS_DIR ".mygit/objects"
+#define COMMITS_DIR ".prk/commits"
+#define OBJECTS_DIR ".prk/objects"
 
 static int write_head_none(void) {
     return repo_write_head("none");

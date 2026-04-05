@@ -7,13 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define REPO_DIR ".mygit"
-#define OBJECTS_DIR ".mygit/objects"
-#define COMMITS_DIR ".mygit/commits"
-#define REFS_DIR ".mygit/refs"
-#define HEAD_FILE ".mygit/HEAD"
-#define INDEX_FILE ".mygit/index.txt"
-#define QUEUE_FILE ".mygit/queue.txt"
+#define REPO_DIR ".prk"
+#define OBJECTS_DIR ".prk/objects"
+#define COMMITS_DIR ".prk/commits"
+#define REFS_DIR ".prk/refs"
+#define HEAD_FILE ".prk/HEAD"
+#define INDEX_FILE ".prk/index.txt"
+#define QUEUE_FILE ".prk/queue.txt"
 
 static int read_index_internal(FileEntry **out_head) {
     char *content;
@@ -80,7 +80,7 @@ int repo_init(void) {
         return -1;
     }
 
-    printf("Initialized empty mygit repository in .mygit/\n");
+    printf("Initialized empty prk repository in .prk/\n");
     return 0;
 }
 
