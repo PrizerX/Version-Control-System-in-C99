@@ -23,9 +23,63 @@ This helps in understanding real-world systems like Git at a low-level, system d
 
 ---
 
-## Process Flow Diagram
+## Workflow
 
-*(To be added later)*
+```mermaid
+flowchart TD
+  A[User CLI Input] --> B[main.c: main]
+
+  B --> C{Command}
+
+  C -->|init| D[repo.c: repo_init]
+  D --> D1[Create .prk dirs and files]
+  D1 --> O[Console Output]
+
+  C -->|add filename| E[repo.c: repo_enqueue_file]
+  E --> E1[repo_load_queue -> enqueue -> repo_save_queue]
+  E1 --> QF[(.prk/queue.txt)]
+  E1 --> O
+
+  C -->|commit message| F[commit.c: create_commit]
+  F --> F1[repo_load_queue]
+  F1 --> QF
+  F --> F2[dequeue each file]
+  F2 --> G[repo.c: repo_process_file]
+  G --> H[hash.c: hash_buffer_hex]
+  H --> OF[(.prk/objects)]
+  G --> IF[(.prk/index.txt)]
+  F --> J[write_commit_file]
+  J --> CF[(.prk/commits)]
+  F --> K[repo_write_head]
+  K --> HF[(.prk/HEAD)]
+  F --> S[stack.c: push]
+  F --> O
+
+  C -->|log| L[commit.c: print_commit_log]
+  L --> CF
+  L --> HF
+  L --> O
+
+  C -->|checkout id| M[commit.c: checkout_commit]
+  M --> CF
+  M --> OF
+  M --> W[Restore working files]
+  M --> HF
+  M --> O
+
+  C -->|undo| N[commit.c: undo_last_commit]
+  N --> P[build_commit_stack]
+  P --> CF
+  N --> S2[stack.c: pop / peek]
+  N --> M
+
+  C -->|diff c1 c2| R[diff.c: diff_commits]
+  R --> R1[load_commit x2]
+  R1 --> CF
+  R --> R2[LCS diff via DP]
+  R2 --> OF
+  R2 --> O
+```
 
 ---
 
