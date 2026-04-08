@@ -1,4 +1,4 @@
-# prk — Version Control System (C99)
+# prk - Version Control System (C99)
 
 
 ## Objective of the Project
@@ -11,78 +11,9 @@ This project demonstrates how core version control mechanisms operate internally
 - Commit creation with parent linkage
 - Version history traversal
 - File restoration (checkout)
-- Difference detection between versions
-
+- Difference detection between versions<br /><br />
 This helps in understanding real-world systems like Git at a low-level, system design perspective.
-
-
-
-## Input and Output
-
-*(To be added later)*
-
 ---
-
-## Workflow
-
-```mermaid
-flowchart TD
-  A[User CLI Input] --> B[main.c: main]
-
-  B --> C{Command}
-
-  C -->|init| D[repo.c: repo_init]
-  D --> D1[Create .prk dirs and files]
-  D1 --> O[Console Output]
-
-  C -->|add filename| E[repo.c: repo_enqueue_file]
-  E --> E1[repo_load_queue -> enqueue -> repo_save_queue]
-  E1 --> QF[(.prk/queue.txt)]
-  E1 --> O
-
-  C -->|commit message| F[commit.c: create_commit]
-  F --> F1[repo_load_queue]
-  F1 --> QF
-  F --> F2[dequeue each file]
-  F2 --> G[repo.c: repo_process_file]
-  G --> H[hash.c: hash_buffer_hex]
-  H --> OF[(.prk/objects)]
-  G --> IF[(.prk/index.txt)]
-  F --> J[write_commit_file]
-  J --> CF[(.prk/commits)]
-  F --> K[repo_write_head]
-  K --> HF[(.prk/HEAD)]
-  F --> S[stack.c: push]
-  F --> O
-
-  C -->|log| L[commit.c: print_commit_log]
-  L --> CF
-  L --> HF
-  L --> O
-
-  C -->|checkout id| M[commit.c: checkout_commit]
-  M --> CF
-  M --> OF
-  M --> W[Restore working files]
-  M --> HF
-  M --> O
-
-  C -->|undo| N[commit.c: undo_last_commit]
-  N --> P[build_commit_stack]
-  P --> CF
-  N --> S2[stack.c: pop / peek]
-  N --> M
-
-  C -->|diff c1 c2| R[diff.c: diff_commits]
-  R --> R1[load_commit x2]
-  R1 --> CF
-  R --> R2[LCS diff via DP]
-  R2 --> OF
-  R2 --> O
-```
-
----
-
 ## Step-by-Step Explanation
 
 ### Stage 1: Basic CLI Structure
@@ -181,6 +112,112 @@ flowchart TD
 - Efficiently detects differences between files
 
 ---
+
+## Workflow
+
+```mermaid
+flowchart TD
+  A[User CLI Input] --> B[main.c: main]
+
+  B --> C{Command}
+
+  C -->|init| D[repo.c: repo_init]
+  D --> D1[Create .prk dirs and files]
+  D1 --> O[Console Output]
+
+  C -->|add filename| E[repo.c: repo_enqueue_file]
+  E --> E1[repo_load_queue -> enqueue -> repo_save_queue]
+  E1 --> QF[(.prk/queue.txt)]
+  E1 --> O
+
+  C -->|commit message| F[commit.c: create_commit]
+  F --> F1[repo_load_queue]
+  F1 --> QF
+  F --> F2[dequeue each file]
+  F2 --> G[repo.c: repo_process_file]
+  G --> H[hash.c: hash_buffer_hex]
+  H --> OF[(.prk/objects)]
+  G --> IF[(.prk/index.txt)]
+  F --> J[write_commit_file]
+  J --> CF[(.prk/commits)]
+  F --> K[repo_write_head]
+  K --> HF[(.prk/HEAD)]
+  F --> S[stack.c: push]
+  F --> O
+
+  C -->|log| L[commit.c: print_commit_log]
+  L --> CF
+  L --> HF
+  L --> O
+
+  C -->|checkout id| M[commit.c: checkout_commit]
+  M --> CF
+  M --> OF
+  M --> W[Restore working files]
+  M --> HF
+  M --> O
+
+  C -->|undo| N[commit.c: undo_last_commit]
+  N --> P[build_commit_stack]
+  P --> CF
+  N --> S2[stack.c: pop / peek]
+  N --> M
+
+  C -->|diff c1 c2| R[diff.c: diff_commits]
+  R --> R1[load_commit x2]
+  R1 --> CF
+  R --> R2[LCS diff via DP]
+  R2 --> OF
+  R2 --> O
+```
+---
+
+
+## Input and Output
+
+Stage 1: Basic CLI Structure
+
+This stage demonstrates the command-line interface of the system, where user inputs are parsed using argc and argv. The program validates commands and routes them to the respective modules. It provides usage instructions, ensuring correct syntax for operations. This forms the entry point and control layer of the system.
+
+
+<img width="1098" height="312" alt="1 prk" src="https://github.com/user-attachments/assets/6e0cedf1-30ca-4551-a88f-46bafe1c8e84" />
+
+Stage 2-4: Initialize, Add and Commit (File Tracking)
+
+The repository is initialized by creating the .prk directory structure along with metadata files like HEAD, index, and queue. Files are added to a staging queue and then processed during commit. Each file is hashed, stored as an object, and indexed. A commit snapshot is created containing metadata and file mappings.
+
+<img width="1378" height="468" alt="2 prk init add commit" src="https://github.com/user-attachments/assets/4d958698-0e17-4b32-a0c0-1f65181d6ec7" />
+
+Stage 5-6: Unique Hashing and Commit History
+
+Each file’s content is converted into a unique hash, enabling content-addressable storage. Commits are linked using parent references, forming a chronological history chain. The log command traverses this chain to display commit details. This ensures traceability and version tracking.
+
+<img width="711" height="293" alt="3 prk log" src="https://github.com/user-attachments/assets/d5836427-d3df-4549-b88f-d5618e6a3611" />
+
+Stage 8: Difference Between Versions (LCS Algorithm)
+
+This stage shows comparison between two commits using the Longest Common Subsequence (LCS) algorithm. File contents are analyzed line-by-line to detect additions and deletions. The output highlights changes using + and - indicators. This provides an efficient method to visualize differences between versions.
+
+<img width="1015" height="484" alt="4 prk diff" src="https://github.com/user-attachments/assets/f13866ee-e6b9-4a2e-b6b3-771b5a91a3c7" />
+
+Stage 7: Rollback Using Undo
+
+The undo operation removes the latest commit using a stack-based approach. It restores the repository to the previous commit state by updating HEAD and reloading files. This ensures safe rollback functionality. It follows LIFO behavior, undoing the most recent changes first.
+
+<img width="732" height="255" alt="7 prk undo" src="https://github.com/user-attachments/assets/88deaabd-5c3f-4e2c-8903-e80a895764ff" />
+
+Stage 9: Checkout Using Commit ID
+
+The checkout operation restores files from a specific commit using its hash ID. The system retrieves stored objects and rewrites them into the working directory. It updates HEAD to reflect the selected commit. This allows direct navigation to any previous version.
+
+<img width="837" height="148" alt="8 prk checkout" src="https://github.com/user-attachments/assets/9da6fcda-f7fe-4b5b-abfb-a359463051a9" />
+
+---
+
+
+
+---
+
 
 ## Data Structures Used
 
